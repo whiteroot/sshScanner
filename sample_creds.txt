@@ -1,0 +1,3 @@
+root|root
+bob|secret
+joe|StarWars42|other|columns|are|just|ignored
