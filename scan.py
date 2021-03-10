@@ -18,7 +18,7 @@ def get_proxies(f):
     with open(f, 'r') as f:
         for line in f:
             x = line.split('|')
-            yield x[0], x[1], x[2]
+            yield x[0], x[1], x[2].strip()
 
 def try_login(hostname, port, username, password):
     try:
