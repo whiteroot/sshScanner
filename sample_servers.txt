@@ -1,0 +1,2 @@
+1.2.3.4|root|root
+123.45.67.89|bob|secret
