@@ -1,8 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import getpass
 import sys
-import traceback
 
 import paramiko
 
@@ -25,7 +24,7 @@ def try_login(hostname, port, username, password):
         client = paramiko.SSHClient()
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.WarningPolicy())
-        print "Trying to connect... {}/{}@{}:{}".format(username, password, hostname, port)
+        print("Trying to connect... {}/{}@{}:{}".format(username, password, hostname, port))
         if not UseGSSAPI and not DoGSSAPIKeyExchange:
             try:
                 client.connect(hostname, port, username, password)
@@ -40,7 +39,6 @@ def try_login(hostname, port, username, password):
             try:
                 client.connect( hostname, port, username, gss_auth=UseGSSAPI, gss_kex=DoGSSAPIKeyExchange)
             except Exception:
-                # traceback.print_exc()
                 password = getpass.getpass( "Password for %s@%s: " % (username, hostname))
                 try:
                     client.connect(hostname, port, username, password)
@@ -56,15 +54,13 @@ def try_login(hostname, port, username, password):
                     return False
 
         chan = client.invoke_shell()
-        print(repr(client.get_transport()))
-        print "Match!!!"
+        print("Match!!!")
         chan.close()
         client.close()
         return True
 
     except Exception as e:
         print("*** Caught exception: %s: %s" % (e.__class__, e))
-        traceback.print_exc()
         try:
             client.close()
         except:
@@ -73,7 +69,7 @@ def try_login(hostname, port, username, password):
 
 def main(argv):
     _file = None
-    ports = [22]
+    ports = [22]  # default port list
     argc = len(sys.argv)
     i = 1
     while (i < argc):
@@ -85,17 +81,21 @@ def main(argv):
             ports = [int(p) for p in sys.argv[i+1].split(',')]
             i += 2
 
+    if not _file:
+        print('Missing file arg')
+        sys.exit(1)
+
     for proxy, user, password in proxies:
         for port in ports:
             try:
                 ret = try_login(proxy, port, user, password)
                 if ret:
-                    print "{}:{}@{}:{} OK".format(user, password, proxy, port)
+                    print("{}:{}@{}:{} OK".format(user, password, proxy, port))
                     break
                 else:
-                    print "{}:{}@{}:{} ko".format(user, password, proxy, port)
+                    print("{}:{}@{}:{} ko".format(user, password, proxy, port))
             except Exception as e:
-                print "{}:{}@{}:{} ko".format(user, password, proxy, port)
+                print("{}:{}@{}:{} ko".format(user, password, proxy, port))
 
 
 if __name__ == '__main__':
