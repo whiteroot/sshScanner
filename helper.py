@@ -1,6 +1,8 @@
 import getpass
 import sys
 
+from constants import cx_status
+
 import paramiko
 
 
@@ -20,12 +22,14 @@ def try_login(hostname, port, username, password):
         if not UseGSSAPI and not DoGSSAPIKeyExchange:
             try:
                 client.connect(hostname, port, username, password)
+            except paramiko.ssh_exception.NoValidConnectionsError:
+                return cx_status.NOT_LISTENING
             except Exception:
                 try:
                     client.close()
                 except Exception:
                     pass
-                return False
+                return cx_status.ERROR
         else:
             raise ("not tested code")
             try:
@@ -43,13 +47,12 @@ def try_login(hostname, port, username, password):
                         client.close()
                     except Exception:
                         pass
-                    return False
+                    return cx_status.ERROR
 
         chan = client.invoke_shell()
-        print("Match!!!")
         chan.close()
         client.close()
-        return True
+        return cx_status.CONNECTED
 
     except Exception as e:
         print("*** Caught exception: %s: %s" % (e.__class__, e))
@@ -57,4 +60,4 @@ def try_login(hostname, port, username, password):
             client.close()
         except:
             pass
-        return False
+        return cx_status.ERROR
