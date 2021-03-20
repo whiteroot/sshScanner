@@ -15,18 +15,14 @@ def get_creds(f_creds):
 
 
 def get_password(f_passwords):
-    print(f_passwords)
     with open(f_passwords, 'r') as f:
         for password in f:
-            print(f"pwd: {password}")
             yield password.strip()
 
 
 def get_creds2(f_users, f_passwords):
-    print(f_users)
     with open(f_users, 'r') as f:
         for user in f:
-            print(f"user: {user}")
             for password in get_password(f_passwords):
                 yield user.strip(), password
 
@@ -85,32 +81,36 @@ def main(argv):
     else:
         cred_gen = get_creds2(u_file, p_file)
 
+    closed_ip_port = []
     with open(out_file, 'w+') as of:
-        for ip in get_ip(ip_range):
+        for user, password in cred_gen:
             if verbose:
-                print(f"IP: {ip}")
-            for port in ports:
+                print(f"{user}/{password}")
+            for ip in get_ip(ip_range):
                 if verbose:
-                    print(f"port {port}")
-                for user, password in cred_gen:
-                    if verbose:
-                        print(f"{user}/{password}")
-                    #ret = helper.try_login(ip, port, user, password, verbose)
-                    ret = cx_status.NOT_LISTENING
-                    if ret == cx_status.CONNECTED:
+                    print(f"IP: {ip}")
+                for port in ports:
+                    if (ip, port) in closed_ip_port:
                         if verbose:
-                            print(f"{user}:{password}@{ip}:{port} OK")
-                        of.write(f"{user}:{password}@{ip}:{port}\n")
-                        break
-                    elif ret == cx_status.NOT_LISTENING:
-                        if verbose:
-                            print(f"Nothing is listening on port {port}")
-                        break
+                            print(f"port {port} previoulsy found closed")
                     else:
                         if verbose:
-                            print(f"{user}:{password}@{ip}:{port} ko")
-                if ret == cx_status.NOT_LISTENING:
-                    continue
+                            print(f"port {port}")
+                        ret = helper.try_login(ip, port, user, password, verbose)
+                        if ret == cx_status.CONNECTED:
+                            if verbose:
+                                print(f"{user}:{password}@{ip}:{port} OK")
+                            of.write(f"{user}:{password}@{ip}:{port}\n")
+                            break
+                        elif ret == cx_status.NOT_LISTENING:
+                            if verbose:
+                                print(f"Nothing is listening on port {port}")
+                                tuple_ = (ip, port)
+                                closed_ip_port.append(tuple_)
+                            break
+                        else:
+                            if verbose:
+                                print(f"{user}:{password}@{ip}:{port} ko")
 
 
 if __name__ == '__main__':
