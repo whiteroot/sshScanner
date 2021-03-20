@@ -13,7 +13,7 @@ UseGSSAPI = ( paramiko.GSS_AUTH_AVAILABLE)
 DoGSSAPIKeyExchange = ( paramiko.GSS_AUTH_AVAILABLE)
 
 
-def try_login(hostname, port, username, password, verbose):
+def try_login(hostname, port, username, password, verbose, timeout):
     try:
         client = paramiko.SSHClient()
         client.load_system_host_keys()
@@ -22,7 +22,8 @@ def try_login(hostname, port, username, password, verbose):
             print("Trying to connect... {}/{}@{}:{}".format(username, password, hostname, port))
         if not UseGSSAPI and not DoGSSAPIKeyExchange:
             try:
-                client.connect(hostname, port, username, password)
+                client.connect(hostname, port, username, password,
+                        timeout=timeout, banner_timeout=timeout, auth_timeout=timeout)
             except paramiko.ssh_exception.NoValidConnectionsError:
                 return cx_status.NOT_LISTENING
             except Exception:
@@ -34,11 +35,13 @@ def try_login(hostname, port, username, password, verbose):
         else:
             raise ("not tested code")
             try:
-                client.connect( hostname, port, username, gss_auth=UseGSSAPI, gss_kex=DoGSSAPIKeyExchange)
+                client.connect( hostname, port, username, gss_auth=UseGSSAPI, gss_kex=DoGSSAPIKeyExchange,
+                        timeout=timeout, banner_timeout=timeout, auth_timeout=timeout)
             except Exception:
                 password = getpass.getpass( "Password for %s@%s: " % (username, hostname))
                 try:
-                    client.connect(hostname, port, username, password)
+                    client.connect(hostname, port, username, password,
+                            timeout=timeout, banner_timeout=timeout, auth_timeout=timeout)
                     try:
                         client.close()
                     except Exception:
