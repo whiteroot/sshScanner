@@ -13,12 +13,13 @@ UseGSSAPI = ( paramiko.GSS_AUTH_AVAILABLE)
 DoGSSAPIKeyExchange = ( paramiko.GSS_AUTH_AVAILABLE)
 
 
-def try_login(hostname, port, username, password):
+def try_login(hostname, port, username, password, verbose):
     try:
         client = paramiko.SSHClient()
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.WarningPolicy())
-        print("Trying to connect... {}/{}@{}:{}".format(username, password, hostname, port))
+        if verbose:
+            print("Trying to connect... {}/{}@{}:{}".format(username, password, hostname, port))
         if not UseGSSAPI and not DoGSSAPIKeyExchange:
             try:
                 client.connect(hostname, port, username, password)

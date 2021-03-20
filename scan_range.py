@@ -24,6 +24,7 @@ def main(argv):
     in_file = None
     out_file = '/tmp/ssh_scan_results.txt'
     ip_range = None
+    verbose = True
     ports = [22]  # default port list
     argc = len(sys.argv)
     i = 1
@@ -40,6 +41,9 @@ def main(argv):
         elif sys.argv[i] in ('-o', '--output'):
             out_file = sys.argv[i+1]
             i += 2
+        elif sys.argv[i] in ('-q', '--quiet'):
+            verbose = False
+            i += 1
         else:
             print(f'Unknown arg: {sys.argv[i]}')
             sys.exit(1)
@@ -51,19 +55,24 @@ def main(argv):
     with open(out_file, 'w+') as of:
         for proxy in get_ip(ip_range):
             for port in ports:
-                print(f"port {port}")
+                if verbose:
+                    print(f"port {port}")
                 for user, password in get_creds(in_file):
-                    print(f"{user}/{password}")
-                    ret = helper.try_login(proxy, port, user, password)
+                    if verbose:
+                        print(f"{user}/{password}")
+                    ret = helper.try_login(proxy, port, user, password, verbose)
                     if ret == cx_status.CONNECTED:
-                        print(f"{user}:{password}@{proxy}:{port} OK")
-                        of.write(f"{user}:{password}@{proxy}:{port}")
+                        if verbose:
+                            print(f"{user}:{password}@{proxy}:{port} OK")
+                        of.write(f"{user}:{password}@{proxy}:{port}\n")
                         break
                     elif ret == cx_status.NOT_LISTENING:
-                        print(f"Nothing is listening on port {port}")
+                        if verbose:
+                            print(f"Nothing is listening on port {port}")
                         break
                     else:
-                        print(f"{user}:{password}@{proxy}:{port} ko")
+                        if verbose:
+                            print(f"{user}:{password}@{proxy}:{port} ko")
                 if ret == cx_status.NOT_LISTENING:
                     continue
 
