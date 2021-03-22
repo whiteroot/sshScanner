@@ -27,6 +27,7 @@ def treat_ip(ip, ports, of):
 
 
 def treat_port(ip, port, of):
+    open_ports = []
     if verbose:
         print(f"port {port}")
     if in_file:
@@ -37,6 +38,12 @@ def treat_port(ip, port, of):
                 status = connect_user_password(ip, port, user, password, of)
                 if status in (cx_status.CONNECTED, cx_status.NOT_LISTENING):
                     return status
+                else:
+                    ip_port = f"{ip}:{port}"
+                    if ip_port not in open_ports:
+                        open_ports.append(ip_port)
+                        with open(f"{out_file}.open", "a") as opf:
+                            opf.write(f"{ip_port}\n")
     else:
         with open(u_file, 'r') as uf:
             with open(p_file, 'r') as pf:
@@ -45,6 +52,12 @@ def treat_port(ip, port, of):
                         status = connect_user_password(ip, port, user.strip(), password.strip(), of)
                         if status in (cx_status.CONNECTED, cx_status.NOT_LISTENING):
                             return status
+                        else:
+                            ip_port = f"{ip}:{port}"
+                            if ip_port not in open_ports:
+                                open_ports.append(ip_port)
+                                with open(f"{out_file}.open", "a") as opf:
+                                    opf.write(f"{ip_port}\n")
 
 
 def connect_user_password(ip, port, user, password, of):
@@ -103,6 +116,6 @@ if not (in_file or (u_file and p_file)):
     print('Missing arg')
     sys.exit(1)
 
-with open(out_file, 'a') as of:
+with open(f"{out_file}.cracked", 'a') as of:
     for ip in get_ip(ip_range):
         treat_ip(ip, ports, of)
