@@ -13,11 +13,21 @@ UseGSSAPI = ( paramiko.GSS_AUTH_AVAILABLE)
 DoGSSAPIKeyExchange = ( paramiko.GSS_AUTH_AVAILABLE)
 
 
+class SilentPolicy(paramiko.MissingHostKeyPolicy):
+    """
+    Policy for ignoring an unknown host key, but
+    accepting it. This is used by `.SSHClient`.
+    """
+
+    def missing_host_key(self, client, hostname, key):
+        pass
+
+
 def try_login(hostname, port, username, password, verbose, timeout):
     try:
         client = paramiko.SSHClient()
         client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.WarningPolicy())
+        client.set_missing_host_key_policy(SilentPolicy())
         if verbose:
             print("Trying to connect... {}/{}@{}:{}".format(username, password, hostname, port))
         if not UseGSSAPI and not DoGSSAPIKeyExchange:
