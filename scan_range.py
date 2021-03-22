@@ -103,6 +103,6 @@ if not (in_file or (u_file and p_file)):
     print('Missing arg')
     sys.exit(1)
 
-with open(out_file, 'w+') as of:
+with open(out_file, 'a') as of:
     for ip in get_ip(ip_range):
         treat_ip(ip, ports, of)
