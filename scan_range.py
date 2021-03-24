@@ -6,6 +6,7 @@ from ipaddress import ip_network
 import helper
 from constants import cx_status
 
+_9hits_sep = '|'
 timeout = 10
 verbose = True
 in_file = None
@@ -17,6 +18,14 @@ def get_ip(cidr):
     net = ip_network(cidr, strict=False)
     for ip in net:
         yield str(ip)
+
+
+def store_open_ip_port(ip, port, open_ports):
+    ip_port = f"{ip}:{port}"
+    if ip_port not in open_ports:
+        open_ports.append(ip_port)
+        with open(f"{out_file}.open", "a") as opf:
+            opf.write(f"{ip_port}\n")
 
 
 def treat_ip(ip, ports, of):
@@ -39,11 +48,7 @@ def treat_port(ip, port, of):
                 if status in (cx_status.CONNECTED, cx_status.NOT_LISTENING):
                     return status
                 else:
-                    ip_port = f"{ip}:{port}"
-                    if ip_port not in open_ports:
-                        open_ports.append(ip_port)
-                        with open(f"{out_file}.open", "a") as opf:
-                            opf.write(f"{ip_port}\n")
+                    store_open_ip_port(ip, port, open_ports)
     else:
         with open(u_file, 'r') as uf:
             with open(p_file, 'r') as pf:
@@ -53,11 +58,7 @@ def treat_port(ip, port, of):
                         if status in (cx_status.CONNECTED, cx_status.NOT_LISTENING):
                             return status
                         else:
-                            ip_port = f"{ip}:{port}"
-                            if ip_port not in open_ports:
-                                open_ports.append(ip_port)
-                                with open(f"{out_file}.open", "a") as opf:
-                                    opf.write(f"{ip_port}\n")
+                            store_open_ip_port(ip, port, open_ports)
 
 
 def connect_user_password(ip, port, user, password, of):
@@ -65,7 +66,7 @@ def connect_user_password(ip, port, user, password, of):
     if ret == cx_status.CONNECTED:
         if verbose:
             print(f"{user}:{password}@{ip}:{port} OK")
-        of.write(f"{user}:{password}@{ip}:{port}\n")
+        of.write(f"{ip}:{port}{_9hits_sep}{user}{_9hits_sep}{password}\n")
     elif ret == cx_status.NOT_LISTENING:
         if verbose:
             print(f"Nothing is listening on port {port}")
