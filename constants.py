@@ -1,6 +1,6 @@
-import enum
+from enum import Enum, auto
 
-class cx_status(enum.Enum):
-    CONNECTED=0
-    ERROR=1
-    NOT_LISTENING=2
+class cx_status(Enum):
+    CONNECTED = auto()
+    ERROR = auto()
+    NOT_LISTENING = auto()

