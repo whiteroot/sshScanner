@@ -34,21 +34,18 @@ def try_login(hostname, port, username, password, verbose, timeout):
             try:
                 client.connect(hostname, port, username, password,
                         timeout=timeout, banner_timeout=timeout, auth_timeout=timeout)
-            except paramiko.ssh_exception.NoValidConnectionsError as e:
+            except paramiko.ssh_exception.NoValidConnectionsError:
                 # closed port
-                print('closed port')
-                raise e
+                return cx_status.NOT_LISTENING
             except paramiko.ssh_exception.AuthenticationException:
-                print('auth failure')
                 return cx_status.ERROR
-            except Exception as e:
+            except Exception:
                 try:
                     client.close()
                 except Exception:
                     pass
                 # filtered port
-                print('filtered port')
-                raise e
+                return cx_status.NOT_LISTENING
         else:
             raise ("not tested code")
             try:
