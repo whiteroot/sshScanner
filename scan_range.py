@@ -2,6 +2,8 @@
 
 import sys
 from ipaddress import ip_network
+import concurrent.futures
+import threading
 
 from scanner import Scanner
 import helper
@@ -13,11 +15,24 @@ in_file = None
 u_file = None
 p_file = None
 
+thread_local = threading.local()
+
+
+def get_scanner(ip, ports, u_file, p_file, in_file, verbose, timeout, of):
+    if not hasattr(thread_local, "scanner"):
+        thread_local.scanner = Scanner(ip, ports, u_file, p_file, in_file, verbose, timeout, of)
+    return thread_local.scanner
+
 
 def get_ip(cidr):
     net = ip_network(cidr, strict=False)
     for ip in net:
         yield str(ip)
+
+
+def scan_ip(ip):
+    scanner = get_scanner(ip, ports, u_file, p_file, in_file, verbose, timeout, of)
+    scanner.scan_ip()
 
 
 out_file = '/tmp/ssh_scan_results.txt'
@@ -62,6 +77,5 @@ if not (in_file or (u_file and p_file)):
     sys.exit(1)
 
 with open(f"{out_file}.cracked", 'a') as of:
-    for ip in get_ip(ip_range):
-        scanner = Scanner(ip, ports, u_file, p_file, in_file, verbose, timeout, of)
-        scanner.scan_ip()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
+        executor.map(scan_ip, get_ip(ip_range))

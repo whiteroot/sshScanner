@@ -1,6 +1,7 @@
 import sys
 from ipaddress import ip_network
 from time import sleep
+from random import random
 
 import helper
 from constants import cx_status
@@ -79,6 +80,7 @@ class Scanner(object):
 
     def try_login(self, user, password):
         for i in range(3):
+            sleep(random())
             t = i * 2
             print(f'retry after {t} sec...')
             sleep(t)
