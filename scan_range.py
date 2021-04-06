@@ -38,6 +38,7 @@ def scan_ip(ip):
 out_file = '/tmp/ssh_scan_results.txt'
 ip_range = None
 ports = [22]  # default port list
+workers = 4
 argc = len(sys.argv)
 i = 1
 while (i < argc):
@@ -65,6 +66,9 @@ while (i < argc):
     elif sys.argv[i] in ('-t', '--timeout'):
         timeout = int(sys.argv[i+1])
         i += 2
+    elif sys.argv[i] in ('-w', '--workers'):
+        workers = int(sys.argv[i+1])
+        i += 2
     else:
         print(f'Unknown arg: {sys.argv[i]}')
         sys.exit(1)
@@ -77,5 +81,5 @@ if not (in_file or (u_file and p_file)):
     sys.exit(1)
 
 with open(f"{out_file}.cracked", 'a') as of:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         executor.map(scan_ip, get_ip(ip_range))

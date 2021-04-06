@@ -14,5 +14,5 @@ examples:
 
     $ ./scan_range.py --input credentials.txt --ports 22,8022,9022 --range 123.44.55.0/30 --output results.txt
     $ ./scan_range.py -i credentials.txt -p 22,8022,9022 -r 123.44.55.0/30 -o results.txt
-    $ ./scan_range.py --users users.txt --passwords pass.txt --ports 22,8022,9022 --range 123.44.55.0/30 --output results.txt
-    $ ./scan_range.py -fu users.txt -fp pass.txt -p 22,8022,9022 -r 123.44.55.0/30 -o results.txt
+    $ ./scan_range.py --users users.txt --passwords pass.txt --ports 22,8022,9022 --range 123.44.55.0/30 --output results.txt --workers 16
+    $ ./scan_range.py -fu users.txt -fp pass.txt -p 22,8022,9022 -r 123.44.55.0/30 -o results.txt -w 16
