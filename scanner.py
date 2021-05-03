@@ -7,6 +7,7 @@ import helper
 from constants import cx_status
 
 _9hits_sep = '|'
+NB_ATTEMPTS = 3
 
 
 class Scanner(object):
@@ -79,7 +80,7 @@ class Scanner(object):
         return ret
 
     def try_login(self, user, password):
-        for i in range(3):
+        for i in range(NB_ATTEMPTS):
             sleep(random())
             t = i * 2
             print(f'retry after {t} sec...')
